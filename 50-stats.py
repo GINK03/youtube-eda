@@ -1,7 +1,7 @@
 import Parser
 import pandas as pd
 import numpy as np
-df = pd.read_csv('./channels.csv')
+df = pd.read_csv('./vars/channels.csv')
 
 Parser.parse_km_subs(df)
 Parser.parse_estimate(df)
