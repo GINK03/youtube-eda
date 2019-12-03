@@ -18,11 +18,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains 
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
 href = 'https://www.youtube.com/?gl=JP'
-
 
 def url_parse(x):
     u = urlparse(x)
@@ -35,7 +34,6 @@ def url_parse(x):
     # if ret != x:
     #    print(x, u, query, ret)
     return ret
-
 
 def scan(arg):
     key, hrefs = arg
@@ -59,8 +57,10 @@ def scan(arg):
     all_ret_hrefs = set()
     for href in hrefs:
         href = url_parse(href)
-        #print(1, href)
+        print(1, href)
         try:
+            if 'https://youtube.com/watch_videos' in href:
+                continue
             if 'https://youtube.com/playlist' in href:
                 continue
             if 'https://youtube.com/redirect' in href:
@@ -86,10 +86,9 @@ def scan(arg):
 
                 else:
                     driver.get(href + '?gl=JP')
-                time.sleep(1.0)
+                time.sleep(5.0)
                 driver.execute_script(
                     "window.scrollTo(0, document.body.scrollHeight + 10000);")
-                time.sleep(1.0)
                 '''
                 try:
                     driver.execute_script("window.scrollTo(0, document.querySelector('#contents').scrollHeight);")
@@ -103,11 +102,20 @@ def scan(arg):
                 # if 'Invalid URL' in exc.args[0]:
                 print(exc)
                 continue
-            html = driver.page_source
-            soup = BeautifulSoup(html, features='lxml')
-            print(href, soup.title.text)
-            #if 'YouTube' == soup.title.text:
-            #    print(soup.body.text[:100])    
+            while True:
+                html = driver.page_source
+                soup = BeautifulSoup(html, features='lxml')
+                if '読み込んでいます...' in soup.body.text:
+                    time.sleep(2.5)
+                else:
+                    break
+            try:
+                print(href, soup.title.text, soup.body.text[:100])
+            except:
+                print('any error', href)
+                continue
+            # if 'YouTube' == soup.title.text:
+            #    print(soup.body.text[:100])
             #print(soup.find('div', {'class':'ytd-item-section-renderer'}))
 
             with open(f'vars/htmls/{hashed}.html', 'wb') as fp:
