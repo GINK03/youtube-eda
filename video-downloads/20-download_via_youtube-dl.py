@@ -57,15 +57,20 @@ df = pd.read_csv('../vars/120_joined_filtered.csv')
 def parallel(arg):
     key, vid = arg
     if Path(f'var/{vid}.mp4').exists():
-        return
+        return 1
     query = f'./youtube-dl --proxy {proxies[key]} -f 133 https://www.youtube.com/watch?v={vid} -o var/{vid}.mp4'
     print(query)
     os.system(query)
+    return 0
 
-vids = df.vid.tolist()
-random.shuffle(vids)
-vids = [(idx % len(proxies), vid) for idx, vid in enumerate(vids)]
-# for vid in vids[:3]:
-#    parallel(vid)
-with PPE(max_workers=min(len(proxies), 512)) as exe:
-    exe.map(parallel, vids)
+while True:
+    vids = df.vid.tolist()
+    random.shuffle(vids)
+    vids = [(idx % len(proxies), vid) for idx, vid in enumerate(vids)]
+    
+    rs = []
+    with PPE(max_workers=min(len(proxies), 100)) as exe:
+        for r in exe.map(parallel, vids):
+            rs.append(r)
+    if sum(rs) == len(vids):
+        break
